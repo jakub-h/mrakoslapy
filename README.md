@@ -36,3 +36,15 @@ pnpm build    # static build in dist/
 
 The rule engine in `src/engine/` has no UI dependencies. Pushing to `master` deploys to GitHub
 Pages.
+
+## Printable cards
+
+`print/mrakoslapy-karty.pdf` holds all 40 cards at MTG size (63 × 88 mm), 9 per A4 page. Print
+at 100% scale. To change the cards, edit `print/cards.mjs` and render the PDF again:
+
+```sh
+cd print
+node cards.mjs all > cards.html
+google-chrome --headless --no-pdf-header-footer --print-to-pdf=mrakoslapy-karty.pdf cards.html
+rm cards.html
+```
