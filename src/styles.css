@@ -7,6 +7,8 @@
   --accent: #7c6cf0;
   --accent-text: #ffffff;
   --life: #2f5b4a;
+  --attack: #5e2f36;
+  --special: #5a4a1f;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
@@ -18,6 +20,8 @@
     --line: #d9d7e6;
     --accent: #5b4bd6;
     --life: #d5efe4;
+    --attack: #f6d9dc;
+    --special: #f5e7bf;
     color-scheme: light;
   }
 }
@@ -54,6 +58,10 @@ input {
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
 .chip { min-height: 40px; padding: 6px 10px; font-size: 0.95rem; }
 .chip.life:not(.on) { background: var(--life); }
+.chip.attack:not(.on) { background: var(--attack); }
+.chip.special:not(.on) { background: var(--special); }
+.chip.spent { text-decoration: line-through; opacity: 0.4; }
+tr.dead th { text-decoration: line-through; opacity: 0.6; }
 .chip.muted { opacity: 0.5; }
 .chip:disabled { opacity: 1; cursor: default; }
 .chip.muted:disabled { opacity: 0.5; }

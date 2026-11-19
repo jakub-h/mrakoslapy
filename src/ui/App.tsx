@@ -1,8 +1,8 @@
 import { useState } from "preact/hooks";
 import { type GameEvent, type GameState, isNight, phaseNo, replay } from "../engine/state";
-import { announceNight, dayLines } from "./common";
-import { Day, type DayDraft, newDay } from "./Day";
-import { Night, type NightDraft, Trace, newNight } from "./Night";
+import { Hands, announceNight, dayLines } from "./common";
+import { Day, type DayDraft, newDay, reopenDay } from "./Day";
+import { Night, type NightDraft, Trace, newNight, reopenNight } from "./Night";
 import { Setup, type SetupDraft, newSetup } from "./Setup";
 
 type Draft = { setup: SetupDraft } | { night: NightDraft } | { day: DayDraft };
@@ -34,7 +34,7 @@ function store(saved: Saved) {
 
 export function App() {
   const [saved, setState] = useState(load);
-  const [showLog, setShowLog] = useState(false);
+  const [view, setView] = useState<"game" | "cards" | "log">("game");
   const { log, draft } = saved;
   const s = replay(log);
   const setSaved = (next: Saved) => {
@@ -48,8 +48,23 @@ export function App() {
   };
   const restart = () => confirm("Smazat rozehranou hru a začít novou?") && setSaved(fresh());
 
+  const back = () => {
+    const last = log.at(-1);
+    if (!last || !confirm("Vrátit se zpět před poslední oznámení?")) return;
+    const before = log.slice(0, -1);
+    const draft: Draft =
+      last.type === "setup"
+        ? { setup: { names: last.players, hands: last.hands, selected: 0, naming: false } }
+        : last.type === "night"
+          ? { night: reopenNight(replay(before)!, last) }
+          : { day: reopenDay(last.events) };
+    setSaved({ log: before, draft });
+    setView("game");
+  };
+
   const lastNight = [...log].reverse().find((e) => e.type === "night");
   const alive = s ? s.players.filter((p) => p.alive).length : 0;
+  const exhibited = s && !isNight(s.phase) && lastNight?.type === "night" ? lastNight.outcome.exhibited : [];
 
   return (
     <main>
@@ -57,10 +72,15 @@ export function App() {
         <h1>{!s ? "Nová hra" : alive <= 1 ? "Konec hry" : `${isNight(s.phase) ? "NOC" : "DEN"} ${phaseNo(s.phase)}`}</h1>
         {s && (
           <>
-            <button onClick={() => setShowLog(!showLog)}>{showLog ? "Zpět do hry" : "Záznam"}</button>
+            {(["game", "cards", "log"] as const).map((v) => (
+              <button key={v} class={view === v ? "on" : ""} onClick={() => setView(v)}>
+                {{ game: "Hra", cards: "Karty", log: "Záznam" }[v]}
+              </button>
+            ))}
             <button onClick={() => exportLog(log)}>Export</button>
           </>
         )}
+        {log.length > 0 && <button onClick={back}>↶ Zpět</button>}
         <button onClick={restart}>Nová hra</button>
       </header>
 
@@ -70,14 +90,16 @@ export function App() {
           onDraft={(d) => setSaved({ log, draft: { setup: d } })}
           onStart={(players, hands) => commit({ type: "setup", players, hands })}
         />
-      ) : showLog || alive <= 1 ? (
+      ) : view === "cards" ? (
+        <Hands s={s} exhibited={exhibited} />
+      ) : view === "log" || alive <= 1 ? (
         <Log s={s} log={log} />
       ) : "night" in draft ? (
         <Night s={s} draft={draft.night} onDraft={(d) => setSaved({ log, draft: { night: d } })} onCommit={commit} />
       ) : (
         <Day
           s={s}
-          exhibited={lastNight?.type === "night" ? lastNight.outcome.exhibited : []}
+          lastNight={lastNight?.type === "night" ? lastNight.outcome : null}
           draft={draft.day}
           onDraft={(d) => setSaved({ log, draft: { day: d } })}
           onCommit={commit}

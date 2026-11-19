@@ -20,7 +20,7 @@ interface Step {
 }
 
 /** Wake steps, with night 1's Mafiáni merged into one joint step. */
-function steps(s: GameState): Step[] {
+export function steps(s: GameState): Step[] {
   const raw = wakeSteps(s).map((w) => ({ cards: [w.card], kind: parseCard(w.card).kind, holder: w.holder, blocked: w.blocked }));
   const mafia = raw.filter((w) => w.kind === "mafian");
   if (phaseNo(s.phase) > 1 || mafia.length < 2) return raw;
@@ -81,7 +81,6 @@ export function Night(props: { s: GameState; draft: NightDraft; onDraft: (d: Nig
   }
 
   const engine = resolveNight(s, draft.actions);
-  const isLife = (c: CardId) => ["zrcadlo", "mrakoslap"].includes(parseCard(c).kind);
   const lives = draft.override?.lives ?? engine.spent.filter(isLife);
   const dead = draft.override?.dead ?? engine.deadPlayers;
   const outcome: NightOutcome = { ...engine, spent: [...engine.spent.filter((c) => !isLife(c)), ...lives], deadPlayers: dead };
@@ -124,6 +123,14 @@ export function Night(props: { s: GameState; draft: NightDraft; onDraft: (d: Nig
       </div>
     </section>
   );
+}
+
+export const isLife = (c: CardId): boolean => ["zrcadlo", "mrakoslap"].includes(parseCard(c).kind);
+
+/** Reopens a committed night at its review screen. */
+export function reopenNight(before: GameState, e: Extract<GameEvent, { type: "night" }>): NightDraft {
+  const override = e.overridden ? { lives: e.outcome.spent.filter(isLife), dead: e.outcome.deadPlayers } : null;
+  return { step: steps(before).length, actions: e.actions, override };
 }
 
 export function Trace(props: { lines: NightOutcome["trace"] }) {

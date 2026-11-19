@@ -1,7 +1,8 @@
-import { KINDS, parseCard, type CardId } from "../engine/cards";
+import type { CardId } from "../engine/cards";
 import { type DayEvent, resolveDay, votersMatter } from "../engine/day";
-import { type GameEvent, type GameState, type PlayerId, activeCards, cardsOf, isActive } from "../engine/state";
-import { Chip, PlayerButtons, dayLines } from "./common";
+import { type GameEvent, type GameState, type PlayerId, activeCards, isActive } from "../engine/state";
+import { Hands, PlayerButtons, announceNight, dayLines } from "./common";
+import type { NightOutcome } from "../engine/night";
 
 export interface DayDraft {
   anarchista: { card: CardId; target: PlayerId } | null;
@@ -15,9 +16,15 @@ export function toEvents(d: DayDraft): DayEvent[] {
   return d.verdict.type === "none" ? events : [...events, d.verdict];
 }
 
+export function reopenDay(events: DayEvent[]): DayDraft {
+  const a = events.find((e) => e.type === "anarchista");
+  const verdict = events.find((e) => e.type !== "anarchista");
+  return { anarchista: a ? { card: a.card, target: a.target } : null, verdict: verdict ?? { type: "none" } };
+}
+
 export function Day(props: {
   s: GameState;
-  exhibited: PlayerId[];
+  lastNight: NightOutcome | null;
   draft: DayDraft;
   onDraft: (d: DayDraft) => void;
   onCommit: (e: GameEvent) => void;
@@ -33,24 +40,18 @@ export function Day(props: {
 
   return (
     <section>
+      {props.lastNight && (
+        <>
+          <h2>Oznámení noci</h2>
+          <div class="announce">
+            {announceNight(s, props.lastNight).map((l) => (
+              <p key={l}>{l}</p>
+            ))}
+          </div>
+        </>
+      )}
       <h2>Karty hráčů</h2>
-      <table class="hands">
-        <tbody>
-          {living.map((p) => (
-            <tr key={p}>
-              <th>
-                {name(p)}
-                {props.exhibited.includes(p) && <small> (exhibován)</small>}
-              </th>
-              <td class="chips">
-                {cardsOf(s, p).map((c) => (
-                  <Chip key={c} card={c} muted={KINDS[parseCard(c).kind].night && parseCard(c).kind !== "mrakoslap"} />
-                ))}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Hands s={s} exhibited={props.lastNight?.exhibited ?? []} onlyActive />
 
       <h2>Konec dne</h2>
       {anarchista && (
