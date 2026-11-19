@@ -2,6 +2,7 @@ import { type CardId, type Kind, cardLabel, parseCard } from "../engine/cards";
 import { type NightActions, type NightOutcome, resolveNight, wakeSteps } from "../engine/night";
 import { type GameEvent, type GameState, type PlayerId, cardsOf, isActive, phaseNo } from "../engine/state";
 import { Chip, PlayerButtons, announceNight } from "./common";
+import { Diagram, Legend } from "./Diagram";
 
 export interface NightDraft {
   step: number;
@@ -111,7 +112,7 @@ export function Night(props: { s: GameState; draft: NightDraft; onDraft: (d: Nig
       </details>
       <details>
         <summary>Cesty střel</summary>
-        <Trace lines={outcome.trace} />
+        <Trace s={s} o={outcome} />
       </details>
       <div class="row">
         <button onClick={() => set({ step: list.length - 1 })} disabled={!list.length}>
@@ -133,15 +134,20 @@ export function reopenNight(before: GameState, e: Extract<GameEvent, { type: "ni
   return { step: steps(before).length, actions: e.actions, override };
 }
 
-export function Trace(props: { lines: NightOutcome["trace"] }) {
-  if (!props.lines.length) return <p class="hint">Žádné střely.</p>;
+export function Trace(props: { s: GameState; o: NightOutcome }) {
+  const lines = props.o.trace;
+  if (!lines.length) return <p class="hint">Žádné střely.</p>;
   return (
-    <ol class="trace">
-      {props.lines.map((l, i) => (
-        <li key={i}>
-          <b>t{l.t}</b> {l.text}
-        </li>
-      ))}
-    </ol>
+    <>
+      <Diagram s={props.s} o={props.o} />
+      <Legend />
+      <ol class="trace">
+        {lines.map((l, i) => (
+          <li key={i}>
+            <b>t{l.t}</b> {l.text}
+          </li>
+        ))}
+      </ol>
+    </>
   );
 }

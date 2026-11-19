@@ -126,7 +126,7 @@ function Log(props: { s: GameState; log: GameEvent[] }) {
             {announceNight(s, e.outcome).map((l) => (
               <p key={l}>{l}</p>
             ))}
-            <Trace lines={e.outcome.trace} />
+            <Trace s={s} o={e.outcome} />
           </article>
         ) : (
           <article key={i}>

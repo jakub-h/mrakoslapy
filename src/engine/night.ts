@@ -8,9 +8,18 @@ export interface Action {
 }
 export type NightActions = Partial<Record<CardId, Action>>;
 
+export interface Edge {
+  kind: "shot" | "tunnel" | "reflect";
+  from: PlayerId;
+  to: PlayerId;
+  /** Time unit in which the shot arrives at `to`. */
+  t: number;
+}
+
 export interface TraceLine {
   t: number;
   text: string;
+  edges?: Edge[];
 }
 
 export interface NightOutcome {
@@ -103,7 +112,7 @@ export function resolveNight(s: GameState, actions: NightActions): NightOutcome 
   const label = (f: Fragment) => `střela ${f.shot + 1}${f.den > 1 ? ` (1/${f.den})` : ""}`;
 
   shots.forEach((sh, i) =>
-    trace.push({ t: 1, text: `${label({ shot: i, den: 1, at: sh.at, from: sh.from })}: ${cardLabel(sh.card)} (${name(sh.from)}) → ${name(sh.at)}` }),
+    trace.push({ t: 1, text: `${label({ shot: i, den: 1, at: sh.at, from: sh.from })}: ${cardLabel(sh.card)} (${name(sh.from)}) → ${name(sh.at)}`, edges: [{ kind: "shot", from: sh.from, to: sh.at, t: 1 }] }),
   );
 
   let pending: Fragment[] = shots.map((sh, i) => ({ shot: i, den: 1, at: sh.at, from: sh.from }));
@@ -122,7 +131,8 @@ export function resolveNight(s: GameState, actions: NightActions): NightOutcome 
       if (dests.length) {
         for (const d of dests) tunnels.find((tn) => tn.from === p && tn.to === d && !tn.used)!.used = true;
         for (const f of frags) for (const d of dests) next.push({ shot: f.shot, den: f.den * dests.length, at: d, from: p });
-        trace.push({ t, text: `${what} u ${name(p)}: tunel → ${dests.map(name).join(", ")}` });
+        const edges = dests.map((d): Edge => ({ kind: "tunnel", from: p, to: d, t: t + 1 }));
+        trace.push({ t, text: `${what} u ${name(p)}: tunel → ${dests.map(name).join(", ")}`, edges });
         continue;
       }
       if (slimed.has(p)) {
@@ -133,7 +143,9 @@ export function resolveNight(s: GameState, actions: NightActions): NightOutcome 
       if (mirror) {
         spent.push(mirror);
         for (const f of frags) next.push({ ...f, at: f.from, from: p });
-        trace.push({ t, text: `${what} u ${name(p)}: praská ${cardLabel(mirror)}, odraz → ${frags.map((f) => name(f.from)).join(", ")}` });
+        const back = [...new Set(frags.map((f) => f.from))];
+        const edges = back.map((to): Edge => ({ kind: "reflect", from: p, to, t: t + 1 }));
+        trace.push({ t, text: `${what} u ${name(p)}: praská ${cardLabel(mirror)}, odraz → ${back.map(name).join(", ")}`, edges });
         continue;
       }
       for (const f of frags) {

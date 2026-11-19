@@ -49,7 +49,11 @@ describe("tunnels and mirrors", () => {
     const s = game({ A: ["mafian-1"], B: ["mrakoslap-1"], C: ["zrcadlo-1", "mag-1"] });
     const o = resolveNight(s, { "mafian-1": { target: 1 }, "mag-1": { from: 1, target: 2 } });
     expect(o.spent).toEqual(["zrcadlo-1", "mrakoslap-1"]);
-    expect(o.deadPlayers).toEqual([]);
+    expect(o.deadPlayers).toEqual([]);    expect(o.trace.flatMap((l) => l.edges ?? [])).toEqual([
+      { kind: "shot", from: 0, to: 1, t: 1 },
+      { kind: "tunnel", from: 1, to: 2, t: 2 },
+      { kind: "reflect", from: 2, to: 1, t: 3 },
+    ]);
   });
 
   it("splits a shot over two tunnels and counts both halves returning at once", () => {

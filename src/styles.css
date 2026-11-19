@@ -9,6 +9,9 @@
   --life: #2f5b4a;
   --attack: #5e2f36;
   --special: #5a4a1f;
+  --shot: #ff6b6b;
+  --tunnel: #5aa9ff;
+  --reflect: #ffb347;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
@@ -22,6 +25,9 @@
     --life: #d5efe4;
     --attack: #f6d9dc;
     --special: #f5e7bf;
+    --shot: #d63333;
+    --tunnel: #1f6fd1;
+    --reflect: #d97a00;
     color-scheme: light;
   }
 }
@@ -75,6 +81,19 @@ small { color: inherit; opacity: 0.75; }
 details { margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
 summary { cursor: pointer; min-height: 32px; font-weight: 600; }
 .trace { padding-left: 1.2em; }
+.diagram { width: 100%; max-width: 640px; display: block; margin: 8px auto; }
+.diagram text { font-size: 13px; fill: var(--text); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
+.diagram .name { font-weight: 600; font-size: 14px; }
+.node circle { fill: var(--panel); stroke: var(--text); stroke-width: 2; }
+.node.dead circle { fill: var(--shot); stroke: var(--shot); }
+.edge-shot { --c: var(--shot); }
+.edge-tunnel { --c: var(--tunnel); }
+.edge-reflect { --c: var(--reflect); }
+.diagram path, .legend line { stroke: var(--c); stroke-width: 2.5; }
+.diagram marker path { fill: var(--c); stroke: none; }
+.edge-tunnel path, .edge-tunnel line { stroke-dasharray: 6 4; }
+.diagram g[class^="edge-"] text { fill: var(--c); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 0.9rem; }
 .trace li { margin: 4px 0; }
 table.hands { width: 100%; border-collapse: collapse; }
 table.hands th { text-align: left; vertical-align: top; padding: 14px 8px 0 0; white-space: nowrap; }
