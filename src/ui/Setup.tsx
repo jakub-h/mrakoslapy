@@ -1,4 +1,3 @@
-import { useState } from "preact/hooks";
 import { type CardId, deck, handSize, sortCards } from "../engine/cards";
 import { Chip } from "./common";
 
@@ -6,12 +5,14 @@ export interface SetupDraft {
   names: string[];
   hands: CardId[][];
   selected: number;
+  naming: boolean;
 }
 
 export const newSetup = (count: number): SetupDraft => ({
   names: Array.from({ length: count }, () => ""),
   hands: Array.from({ length: count }, () => []),
   selected: 0,
+  naming: true,
 });
 
 export function Setup(props: {
@@ -19,8 +20,7 @@ export function Setup(props: {
   onDraft: (d: SetupDraft) => void;
   onStart: (names: string[], hands: CardId[][]) => void;
 }) {
-  const { names, hands, selected } = props.draft;
-  const [naming, setNaming] = useState(names.some((n) => !n.trim()));
+  const { names, hands, selected, naming } = props.draft;
   const count = names.length;
   const size = handSize(count);
   const ownerOf = (c: CardId) => hands.findIndex((h) => h.includes(c));
@@ -61,7 +61,7 @@ export function Setup(props: {
             onInput={(e) => set({ names: names.map((x, j) => (j === i ? e.currentTarget.value : x)) })}
           />
         ))}
-        <button class="primary" disabled={!namesOk} onClick={() => setNaming(false)}>
+        <button class="primary" disabled={!namesOk} onClick={() => set({ naming: false })}>
           Zadat karty
         </button>
       </section>
@@ -97,7 +97,7 @@ export function Setup(props: {
         })}
       </div>
       <div class="row">
-        <button onClick={() => setNaming(true)}>Zpět ke jménům</button>
+        <button onClick={() => set({ naming: true })}>Zpět ke jménům</button>
         <button class="primary" disabled={!handsOk} onClick={() => props.onStart(names.map((n) => n.trim()), hands)}>
           Začít hru (NOC 1)
         </button>
