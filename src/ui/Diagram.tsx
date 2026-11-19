@@ -29,6 +29,9 @@ export function Diagram(props: { s: GameState; o: NightOutcome }) {
     const key = `${e.kind}-${e.from}-${e.to}`;
     edges.set(key, { ...e, ts: [...(edges.get(key)?.ts ?? []), e.t] });
   }
+  for (const { from, to } of o.idleTunnels) {
+    if (!edges.has(`tunnel-${from}-${to}`)) edges.set(`tunnel-${from}-${to}`, { kind: "tunnel", from, to, ts: [] });
+  }
   const times = (ts: number[]) =>
     [...new Set(ts)].map((t) => {
       const count = ts.filter((x) => x === t).length;
@@ -77,7 +80,7 @@ export function Diagram(props: { s: GameState; o: NightOutcome }) {
           label = { x: 0.25 * start.x + 0.5 * c.x + 0.25 * end.x, y: 0.25 * start.y + 0.5 * c.y + 0.25 * end.y };
         }
         return (
-          <g key={`${e.kind}-${e.from}-${e.to}`} class={`edge-${e.kind}`}>
+          <g key={`${e.kind}-${e.from}-${e.to}`} class={`edge-${e.kind}${e.ts.length ? "" : " idle"}`}>
             <path d={d} fill="none" marker-end={`url(#arrow-${e.kind})`} />
             <text x={label.x} y={label.y + 4} text-anchor="middle">
               {times(e.ts).join(", ")}
@@ -117,6 +120,12 @@ export function Legend() {
           {label}
         </span>
       ))}
+      <span class="edge-tunnel idle">
+        <svg width="28" height="10">
+          <line x1="0" y1="5" x2="28" y2="5" />
+        </svg>{" "}
+        tunel bez střely
+      </span>
       <span>tN = časová jednotka příletu</span>
     </p>
   );

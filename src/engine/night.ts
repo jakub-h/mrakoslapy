@@ -32,6 +32,8 @@ export interface NightOutcome {
   /** The Medik announced dead, who is actually alive. */
   medik: PlayerId | null;
   returning: PlayerId[];
+  /** Tunnels made tonight that no shot went through. */
+  idleTunnels: { from: PlayerId; to: PlayerId }[];
   trace: TraceLine[];
 }
 
@@ -97,14 +99,19 @@ export function resolveNight(s: GameState, actions: NightActions): NightOutcome 
 
   const tunnels = stepsOf("mag").flatMap((st) => {
     const { from, target: to } = actions[st.card] ?? {};
-    if (!reachable(from) || !reachable(to) || from === to || [from, to].includes(ateista)) return [];
-    return [{ from, to, used: false }];
+    if (!reachable(from) || !reachable(to)) return [];
+    const why = from === to ? "tunel na sebe" : [from, to].includes(ateista) ? "Ateista" : null;
+    if (!why) return [{ from, to, used: false }];
+    trace.push({ t: 0, text: `Tunel ${name(from)} → ${name(to)} zmizel (${why}).` });
+    return [];
   });
-  const slimed = new Set(
-    stepsOf("slina")
-      .map((st) => target(st.card))
-      .filter((p): p is PlayerId => reachable(p) && p !== ateista),
-  );
+  const slimed = new Set<PlayerId>();
+  for (const st of stepsOf("slina")) {
+    const p = target(st.card);
+    if (!reachable(p)) continue;
+    if (p === ateista) trace.push({ t: 0, text: `Slina na ${name(p)} zmizela (Ateista).` });
+    else slimed.add(p);
+  }
 
   const mirrors = new Map(s.players.map((_, p) => [p, cardsOf(s, p, "zrcadlo")]));
   const lives = new Map(s.players.map((_, p) => [p, cardsOf(s, p, "mrakoslap")]));
@@ -186,6 +193,7 @@ export function resolveNight(s: GameState, actions: NightActions): NightOutcome 
     deadPlayers: [...dead],
     medik,
     returning: s.players.flatMap((pl, p) => (pl.fakeDeadUntilNight === n ? [p] : [])),
+    idleTunnels: tunnels.filter((tn) => !tn.used).map(({ from, to }) => ({ from, to })),
     trace,
   };
 }

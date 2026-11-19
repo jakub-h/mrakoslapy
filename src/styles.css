@@ -92,6 +92,7 @@ summary { cursor: pointer; min-height: 32px; font-weight: 600; }
 .diagram path, .legend line { stroke: var(--c); stroke-width: 2.5; }
 .diagram marker path { fill: var(--c); stroke: none; }
 .edge-tunnel path, .edge-tunnel line { stroke-dasharray: 6 4; }
+.idle { opacity: 0.35; }
 .diagram g[class^="edge-"] text { fill: var(--c); font-weight: 600; }
 .legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 0.9rem; }
 .trace li { margin: 4px 0; }

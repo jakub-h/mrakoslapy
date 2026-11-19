@@ -80,6 +80,12 @@ describe("tunnels and mirrors", () => {
     expect(o.deadPlayers).toEqual([2]);
   });
 
+  it("reports tunnels no shot went through", () => {
+    const s = game({ A: ["mafian-1"], X: ["mag-1"], Y: [], Z: [] });
+    const o = resolveNight(s, { "mafian-1": { target: 1 }, "mag-1": { from: 2, target: 3 } });
+    expect(o.idleTunnels).toEqual([{ from: 2, to: 3 }]);
+  });
+
   it("keeps a dead Mág's tunnel working", () => {
     const s = game({ A: ["mafian-1"], S: ["strelec-1"], M: ["mag-1"], N: ["mag-2"], X: [], C: [], D: [] }, NIGHT2);
     const o = resolveNight(s, {
@@ -138,6 +144,10 @@ describe("Ateista", () => {
     });
     expect(o.slimed).toEqual([]);
     expect(o.deadPlayers).toEqual([1]);
+    expect(o.trace.filter((l) => l.t === 0).map((l) => l.text)).toEqual([
+      "Tunel X → T zmizel (Ateista).",
+      "Slina na T zmizela (Ateista).",
+    ]);
   });
 
   it("drops tunnels leading out of the Ateista", () => {

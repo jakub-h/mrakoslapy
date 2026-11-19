@@ -136,7 +136,7 @@ export function reopenNight(before: GameState, e: Extract<GameEvent, { type: "ni
 
 export function Trace(props: { s: GameState; o: NightOutcome }) {
   const lines = props.o.trace;
-  if (!lines.length) return <p class="hint">Žádné střely.</p>;
+  if (!lines.length && !props.o.idleTunnels.length) return <p class="hint">Žádné střely ani tunely.</p>;
   return (
     <>
       <Diagram s={props.s} o={props.o} />
@@ -144,7 +144,8 @@ export function Trace(props: { s: GameState; o: NightOutcome }) {
       <ol class="trace">
         {lines.map((l, i) => (
           <li key={i}>
-            <b>t{l.t}</b> {l.text}
+            {l.t > 0 && <b>t{l.t} </b>}
+            {l.text}
           </li>
         ))}
       </ol>
