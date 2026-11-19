@@ -110,7 +110,7 @@ export function Night(props: { s: GameState; draft: NightDraft; onDraft: (d: Nig
         <h3>Umírají</h3>
         <PlayerButtons s={s} options={targets} selected={dead} onPick={(p) => edit({ dead: flip(dead, p) })} />
       </details>
-      <details>
+      <details open>
         <summary>Cesty střel</summary>
         <Trace s={s} o={outcome} />
       </details>
